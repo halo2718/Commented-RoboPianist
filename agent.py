@@ -47,7 +47,8 @@ class SacAgent:
         self.policy = GaussianPolicy(
             self.observ_shape[0],
             self.action_shape[0],
-            hidden_units=hidden_units).to(self.device)
+            hidden_units=hidden_units
+            ).to(self.device)
 
         # Q functions
         kwargs_q = {"num_inputs": self.observ_shape[0],
@@ -124,7 +125,8 @@ class SacAgent:
         self.tau = tau
         self.per = per
         self.batch_size = batch_size
-        self.start_steps = start_steps
+        # self.start_steps = start_steps
+        self.start_steps = 0
         self.gamma_n = gamma ** multi_step
         self.entropy_tuning = entropy_tuning
         self.grad_clip = grad_clip
@@ -140,7 +142,7 @@ class SacAgent:
     def get_observations(self, timestep):
         obs = []
         for k, v in timestep.observation.items():
-            if len(obs):
+            if not len(obs):
                 obs = v
             else:
                 obs = np.concatenate((obs, v), axis=-1)
@@ -207,7 +209,8 @@ class SacAgent:
 
         while not done:
             action = self.act(state)
-            # print(action)
+            # print(action[50:55])
+            # exit()
             timestep = self.env.step(action)
             # print('step!')
             # print(timestep.reward)
@@ -385,6 +388,7 @@ class SacAgent:
             done = False
             while not done:
                 action = self.exploit(state)
+
                 timestep = self.eval_env.step(action)
                 next_state = self.get_observations(timestep)
                 reward = timestep.reward

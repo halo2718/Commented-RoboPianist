@@ -115,7 +115,7 @@ class GaussianPolicy(BaseNetwork):
             log_std, min=self.LOG_STD_MIN, max=self.LOG_STD_MAX)
 
         return mean, log_std
-
+        
     def sample(self, states):
         # calculate Gaussian distribusion of (mean, std)
         means, log_stds = self.forward(states)
@@ -130,3 +130,29 @@ class GaussianPolicy(BaseNetwork):
         entropies = -log_probs.sum(dim=1, keepdim=True)
 
         return actions, entropies, torch.tanh(means)
+    
+class MLPPolicy(BaseNetwork):
+    LOG_STD_MAX = 2
+    LOG_STD_MIN = -20
+    eps = 1e-6
+
+    def __init__(self, num_inputs, num_actions, hidden_units=[256, 256, 256],
+                 initializer='xavier'):
+        super(MLPPolicy, self).__init__()
+
+        self.policy = nn.Sequential(
+            nn.Linear(num_inputs, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+            nn.Linear(256, num_actions),
+            nn.Tanh()
+        )
+
+    def forward(self, states):
+        return self.policy(states)
+        
+    def sample(self, states):
+        return self.policy(states)

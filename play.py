@@ -38,26 +38,32 @@ def play_video(filename: str):
 def get_observations(timestep):
     obs = []
     for k, v in timestep.observation.items():
-        if len(obs):
+        if not len(obs):
             obs = v
         else:
             obs = np.concatenate((obs, v), axis=-1)
     return np.array(obs)
 
 def get_env():
-    task = piano_with_one_shadow_hand.PianoWithOneShadowHand(
-        change_color_on_activation=True,
+    # task = piano_with_one_shadow_hand.PianoWithOneShadowHand(
+    #     change_color_on_activation=True,
+    #     midi=music.load("TwinkleTwinkleRousseau"),
+    #     trim_silence=True,
+    #     control_timestep=0.05,
+    #     gravity_compensation=True,
+    #     primitive_fingertip_collisions=False,
+    #     reduced_action_space=False,
+    #     n_steps_lookahead=10,
+    #     disable_fingering_reward=False,
+    #     disable_colorization=False,
+    #     attachment_yaw=0.0,
+    #     hand_side=HandSide.RIGHT
+    # )
+    task = self_actuated_piano.SelfActuatedPiano(
         midi=music.load("TwinkleTwinkleRousseau"),
+        change_color_on_activation=True,
         trim_silence=True,
-        control_timestep=0.05,
-        gravity_compensation=True,
-        primitive_fingertip_collisions=False,
-        reduced_action_space=False,
-        n_steps_lookahead=10,
-        disable_fingering_reward=False,
-        disable_colorization=False,
-        attachment_yaw=0.0,
-        hand_side=HandSide.RIGHT
+        control_timestep=0.01,
     )
 
     env = composer_utils.Environment(
@@ -68,7 +74,7 @@ def get_env():
         env,
         record_every=1,
         camera_id="piano/back",
-        record_dir=".",
+        record_dir="./test_res",
     )
 
     env = CanonicalSpecWrapper(env)
@@ -95,7 +101,7 @@ def run():
         action_shape[0],
         hidden_units=[256, 256, 256]).to(device)
 
-    model_path = '/data12/private/baiyuzhuo/robopianist/Commented-RoboPianist/runs/droq/droq_2023-05-30T13:45:50.126643'
+    model_path = 'runs/droq-actuate/droq-actuate_2023-06-03T09:00:22.588338'
     policy.load(os.path.join(model_path, 'model', 'policy.pth'))
     grad_false(policy)
 

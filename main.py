@@ -18,6 +18,7 @@ from robopianist.models.hands import HandSide
 import dm_env
 
 from agent import SacAgent
+from mlp_agent import MLPAgent
 
 # TODO use shared util.utilTH in SAC-extention
 from util.utilsTH import SparseRewardEnv
@@ -39,27 +40,27 @@ def play_video(filename: str):
         % data_url
     )
 
-def get_env(wrap=False):
-    # task = self_actuated_piano.SelfActuatedPiano(
-    #     midi=music.load("TwinkleTwinkleRousseau"),
-    #     change_color_on_activation=True,
-    #     trim_silence=True,
-    #     control_timestep=0.01,
-    # )
-    task = piano_with_one_shadow_hand.PianoWithOneShadowHand(
-        change_color_on_activation=True,
+def get_env(wrap=False, name=''):
+    task = self_actuated_piano.SelfActuatedPiano(
         midi=music.load("TwinkleTwinkleRousseau"),
+        change_color_on_activation=True,
         trim_silence=True,
-        control_timestep=0.05,
-        gravity_compensation=True,
-        primitive_fingertip_collisions=False,
-        reduced_action_space=False,
-        n_steps_lookahead=10,
-        disable_fingering_reward=False,
-        disable_colorization=False,
-        attachment_yaw=0.0,
-        hand_side=HandSide.RIGHT
+        control_timestep=0.01,
     )
+    # task = piano_with_one_shadow_hand.PianoWithOneShadowHand(
+    #     change_color_on_activation=True,
+    #     midi=music.load("TwinkleTwinkleRousseau"),
+    #     trim_silence=True,
+    #     control_timestep=0.05,
+    #     gravity_compensation=True,
+    #     primitive_fingertip_collisions=False,
+    #     reduced_action_space=False,
+    #     n_steps_lookahead=10,
+    #     disable_fingering_reward=False,
+    #     disable_colorization=False,
+    #     attachment_yaw=0.0,
+    #     hand_side=HandSide.RIGHT
+    # )
 
     env = composer_utils.Environment(
         task=task, strip_singleton_obs_buffer_dim=True, recompile_physics=False
@@ -70,7 +71,7 @@ def get_env(wrap=False):
             env,
             record_every=1,
             camera_id="piano/back",
-            record_dir=".",
+            record_dir=f"./{name}",
         )
 
     env = CanonicalSpecWrapper(env)
@@ -92,7 +93,7 @@ def run():
     # evaluation
     parser.add_argument("-eval_every", type=int, default=10000,
                         help="Number of interactions after which the evaluation runs are performed, default = 1000")
-    parser.add_argument("-eval_runs", type=int, default=3, help="Number of evaluation runs performed, default = 1")
+    parser.add_argument("-eval_runs", type=int, default=1, help="Number of evaluation runs performed, default = 1")
     # sparse env
     parser.add_argument("-sparsity_th", type=float, default=0.0,
                         help="threshold for make reward sparse (i.e., lambda in PolyRL paper), default is 0.0")
@@ -150,7 +151,7 @@ def run():
         'beta_annealing': (1.0 - 0.4) / (1.0 * args.frames * args.updates_per_step), # 0.0001,  # It's ignored when per=False.
         'grad_clip': None,
         'updates_per_step': args.updates_per_step * args.critic_update_delay, # args.updates_per_step, #1,
-        'start_steps': 5000, #10000,
+        'start_steps': 10000, #10000,
         'log_interval': 10,
         'target_update_interval': 1,
         'eval_interval': args.eval_every, # 10000,
@@ -169,7 +170,7 @@ def run():
     }
 
     train_env = get_env()
-    eval_env = get_env(wrap=True)
+    eval_env = get_env(wrap=True, name=args.info)
 
     # action_spec = env.action_spec()
     # print(f"Action dimension: {action_spec.shape}")
@@ -190,6 +191,7 @@ def run():
     label = args.info + "_" + str(datetime.datetime.now().isoformat())
     log_dir = os.path.join('runs', args.info, label)
     agent = SacAgent(train_env=train_env, eval_env=eval_env, log_dir=log_dir, **configs)
+    # agent = MLPAgent(train_env=train_env, eval_env=eval_env, log_dir=log_dir, **configs)
 
     # if args.distributional: # TODO remove
     #     raise NotImplementedError()
