@@ -63,9 +63,11 @@ action_spec = env.action_spec()
 print(f"Action dimension: {action_spec.shape}")
 
 timestep = env.reset()
+# print(timestep)
+# print(timestep.reward)
 dim = 0
 for k, v in timestep.observation.items():
-    print(f"\t{k}: {v.shape} {v.dtype}")
+    print(f"\t{k}: {v.shape} {v.dtype} {v}")
     dim += int(np.prod(v.shape))
 print(f"Observation dimension: {dim}")
 
@@ -80,6 +82,7 @@ class Policy:
     def __call__(self, timestep: dm_env.TimeStep) -> np.ndarray:
         del timestep  # Unused.
         actions = self._actions[self._idx]
+        print(actions)
         self._idx += 1
         return actions
     

@@ -84,7 +84,9 @@ policy = Oracle()
 timestep = env.reset()
 while not timestep.last():
     action = policy(timestep)
+    # print('action', action)
     timestep = env.step(action)
+    # print(timestep.reward)
     
 play_video(env.latest_filename)
 
