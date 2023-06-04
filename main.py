@@ -41,12 +41,12 @@ def play_video(filename: str):
     )
 
 def get_env(wrap=False, name=''):
-    task = self_actuated_piano.SelfActuatedPiano(
-        midi=music.load("TwinkleTwinkleRousseau"),
-        change_color_on_activation=True,
-        trim_silence=True,
-        control_timestep=0.01,
-    )
+    # task = self_actuated_piano.SelfActuatedPiano(
+    #     midi=music.load("TwinkleTwinkleRousseau"),
+    #     change_color_on_activation=True,
+    #     trim_silence=True,
+    #     control_timestep=0.01,
+    # )
     # task = piano_with_one_shadow_hand.PianoWithOneShadowHand(
     #     change_color_on_activation=True,
     #     midi=music.load("TwinkleTwinkleRousseau"),
@@ -61,6 +61,21 @@ def get_env(wrap=False, name=''):
     #     attachment_yaw=0.0,
     #     hand_side=HandSide.RIGHT
     # )
+    task = piano_with_shadow_hands.PianoWithShadowHands(
+        change_color_on_activation=True,
+        midi=music.load("TwinkleTwinkleRousseau"),
+        trim_silence=True,
+        control_timestep=0.05,
+        gravity_compensation=True,
+        primitive_fingertip_collisions=False,
+        reduced_action_space=False,
+        n_steps_lookahead=10,
+        disable_fingering_reward=False,
+        disable_forearm_reward=False,
+        disable_colorization=False,
+        disable_hand_collisions=False,
+        attachment_yaw=0.0,
+    )
 
     env = composer_utils.Environment(
         task=task, strip_singleton_obs_buffer_dim=True, recompile_physics=False
